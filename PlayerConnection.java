@@ -12,8 +12,8 @@ public class PlayerConnection extends Thread{
     public PlayerConnection(Socket clientsocket,TronServer host){
 	this.host = host;
 	this.clientsocket = clientsocket;
-	this.in = new BufferedReader(this.clientsocket.getInputStream());
-	this.out = new BufferedWriter(this.clientsocket.getOutputStream());
+	this.in = new BufferedReader(new InputStreamReader(this.clientsocket.getInputStream()));
+	this.out = new PrintWriter(this.clientsocket.getOutputStream());
     }
 
     public TronPlayer getPlayer(){
