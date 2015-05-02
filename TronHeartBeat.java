@@ -25,7 +25,8 @@ public class TronHeartBeat extends Thread{
 		    } catch(InterruptedException e){
 		    	System.err.println("Sleep interrompu: "+ e);
 		    }
-		    
+		    //On commence la partie
+		    this.server.startPartie();		    
 		    //On "réveille" les connections pour le début de la partie
 		    for(PlayerConnection connection: this.server.getConnections()){
 		    	if(connection.isInitialized()){
@@ -35,8 +36,8 @@ public class TronHeartBeat extends Thread{
 		    	}
 		    }
 		    
-		    //On commence la partie
-		    this.server.startPartie();
+		    
+
 		    System.out.println("La partie commence...");
 		    
 		    int survivants;
@@ -56,6 +57,7 @@ public class TronHeartBeat extends Thread{
 		    	for(PlayerConnection connection : server.getConnections()){
 					if(!connection.isDead()){//Si le joueur est vivant
 						connection.getPlayer().move();
+						System.out.println(connection.getPlayer().getUsername() +"se déplace");
 					}
 					//Envoie à chacun des clients les directions des autres joueurs, dans l'ordre de la liste des connections du serveur
 					String directions = "";//Directions des autres joueurs
@@ -75,6 +77,7 @@ public class TronHeartBeat extends Thread{
 					} else {
 						//On envoie les directions des adversaires au joueur
 						connection.send("s"+directions);
+						System.out.println("Directions: "+directions);
 					}
 					
 		    	}
@@ -95,7 +98,7 @@ public class TronHeartBeat extends Thread{
 	    	System.out.println("Fin de la partie.");
 	    	
 			this.restart();
-			//appel la methode "restart" qui s'occupe de réinitialiser les paramètres des joeurs et de recommencer la partie avec les nouveaux joueurs
+			//appel la methode "restart" qui s'occupe de réinitialiser les paramètres des joeurs et initialiser les nouveaux joueurs
     	}
     }	
     
@@ -136,6 +139,6 @@ public class TronHeartBeat extends Thread{
     			}
     		}
     	}
-    		
+    	
     }
 }

@@ -21,7 +21,6 @@ public class PlayerConnection extends Thread{
 			this.in = new BufferedReader(new InputStreamReader(this.clientsocket.getInputStream()));
 			this.out = new PrintWriter(this.clientsocket.getOutputStream());
 			this.connected = true;
-			this.initialize();//On initialise le joueur
 		} catch (IOException e) {
 			System.err.println("Erreur: Impossible de créer le inputStream ou le outputStream: "+ e);
 			this.disconnect();//Si le input ou le outputStream ne peuvent pas s'ouvrir correctement, le joueur est considéré mort
@@ -103,31 +102,35 @@ public class PlayerConnection extends Thread{
     
     //Cette méthode lit le inputStream et met à jour la direction du joueur
     public void run(){
-		synchronized(this){
-			//Tant que la partie n'est pas commencé, on attend une notification(de l'horloge du serveur)
-			while(!this.host.ispartieEnCours()){
+    	this.initialize();//On initialise le joueur
+    	while(true){
+			synchronized(this){
+				//Tant que la partie n'est pas commencé, on attend une notification(de l'horloge du serveur)
+				while(!this.host.ispartieEnCours()){
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}//On pause l'exécution du thread jusqu'au début de la partie
+			}
+			while(this.host.ispartieEnCours()){
+				System.out.println(this.player.getUsername() + ": listening to my master's command");
+				String command;
 				try {
-					this.wait();
-				} catch (InterruptedException e) {
+					command = this.in.readLine();
+					if(command.equals("quit")){
+						this.disconnect();
+						return;
+					} else if (command.equals("N") || command.equals("W") || command.equals("E") || command.equals("S") ){
+						this.player.setDirection(command);
+					}
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}//On pause l'exécution du thread jusqu'au début de la partie
-		}
-		while(this.host.ispartieEnCours()){
-			String command;
-			try {
-				command = this.in.readLine();
-				if(command.equals("quit")){
-					this.disconnect();
-					return;
-				} else{
-					this.player.setDirection(command);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+					
 			}
-				
-		}
+    	}
 		
     }
     

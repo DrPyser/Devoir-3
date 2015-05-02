@@ -103,16 +103,17 @@ public class TronServer {
 			server.startClock();
 			while(true){
 			    //Tentative de création du ClientSocket ET de la connection au client
+			    System.out.println("En attente d'une connection cliente sur le port " + server.port + "...");
+			    System.out.flush();
 			    try {
-					System.out.println("En attente d'une connection cliente sur le port " + server.port + "...");
-					System.out.flush();
 					Socket clientsocket = server.serversocket.accept();//On accept la prochaine connection cliente
 					System.out.println("Connection établie!");
 					System.out.flush();
 					PlayerConnection connection = new PlayerConnection(clientsocket,server);//On crée un nouveau thread pour gérer la connection
+					server.addConnection(connection);//On ajoute la nouvelle connection à la liste des connections gérées par le serveur
 					connection.start();//On commence l'exécution du thread
 					System.out.println("Partie commencée?: "+ server.partieEnCours);
-					server.addConnection(connection);//On ajoute la nouvelle connection à la liste des connections gérées par le serveur
+					
 			    } catch (IOException e) {
 					System.err.println("Erreur: connection refusée: " + e);
 					System.exit(1);
