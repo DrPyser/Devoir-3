@@ -24,7 +24,7 @@ public class TronServer {
 		//Tentative de création du ServerSocket
 		try {
 		    this.serversocket = new ServerSocket(this.port);
-		    System.out.println("Serveur" + this.serverhostname + "en ligne sur le port " + this.port);
+		    System.out.println("Serveur " + this.serverhostname + " en ligne sur le port " + this.port);
 		} catch(IOException e){
 		    System.err.println("Erreur: impossible de créer le ServerSocket: " + e);
 		    System.exit(1);
