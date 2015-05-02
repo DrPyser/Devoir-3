@@ -67,7 +67,7 @@ public class PlayerConnection extends Thread{
 						i = 0;
 					}
 					if(otherConnection.getPlayer().getStartPoint().equals(this.player.getStartPoint())){
-						this.player.setStartPoint(new Point(randomRange(0,this.host.getWidth()),randomRange(0,this.host.getHeight())));
+						this.player.setStartPoint(new Point(randomRange(0,this.host.getWidth()),randomRange(0,this.host.getHeight())));//nouveau point aléatoire
 						i = 0;
 					}
 				}
