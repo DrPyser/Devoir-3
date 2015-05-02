@@ -1,3 +1,5 @@
+import java.util.Iterator;
+
 public class TronHeartBeat extends Thread{
     private int timing;//intervalle entre chaque battement, en millisecondes
     private TronServer server;
@@ -103,31 +105,37 @@ public class TronHeartBeat extends Thread{
     	//On initialize les nouveaux joueurs.
     	//On envoie à chacun des joueur les informations sur chacun des joueurs.
 
-    	for(int i = 0;i<this.server.getConnections().size();i++){
-    		PlayerConnection connection = this.server.getConnections().get(i);
+    	//On enlève d'abord les joueurs déconnectés
+    	for(Iterator<PlayerConnection> connections = this.server.getConnections().iterator();connections.hasNext();){
+    		PlayerConnection connection = connections.next();
     		if(!connection.isConnected()){
-    			this.server.getConnections().remove(i);
+    			connections.remove();
     		} else if (connection.isInitialized()){
+    			//On réinitialize la position de départ des joueurs déjà initialisés
     			connection.reset();
+    		}
+    	}
+    	
+
+    	for(PlayerConnection connection: this.server.getConnections()){
+	    	//On partage entre les joueurs initialisés leurs nouveaux profils
+    		if (connection.isInitialized()){
     			for(PlayerConnection otherConnection: this.server.getConnections()){
     				if(otherConnection.isInitialized()){
-	    			    connection.send("+"+ otherConnection.getPlayer().getUsername());
-	    			    connection.send(otherConnection.getPlayer().getMachineID());
-	    			    connection.send(""+ otherConnection.getPlayer().getColor().getRGB());
-	    			    connection.send(""+ otherConnection.getPlayer().getStartPoint().getX());
-	    			    connection.send(""+ otherConnection.getPlayer().getStartPoint().getY());
-	    			    otherConnection.send("+"+ connection.getPlayer().getUsername());
-	    			    otherConnection.send(connection.getPlayer().getMachineID());
-	    			    otherConnection.send(""+ connection.getPlayer().getColor().getRGB());
-	    			    otherConnection.send(""+ connection.getPlayer().getStartPoint().getX());
-	    			    otherConnection.send(""+ connection.getPlayer().getStartPoint().getY());
+    				    connection.send("+"+ otherConnection.getPlayer().getUsername());
+    				    connection.send(otherConnection.getPlayer().getMachineID());
+    				    connection.send(""+ otherConnection.getPlayer().getColor().getRGB());
+    				    connection.send(""+ otherConnection.getPlayer().getStartPoint().getX());
+    				    connection.send(""+ otherConnection.getPlayer().getStartPoint().getY());
     				}
     			}
-    		} else {
+    		} else{
+    			//On réveille les joueurs en attente d'initialisation
     			synchronized(connection){
     				connection.notify();
     			}
     		}
     	}
+    		
     }
 }

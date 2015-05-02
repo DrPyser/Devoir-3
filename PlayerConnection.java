@@ -34,24 +34,28 @@ public class PlayerConnection extends Thread{
     	String username;
 		Color randomColor = new Color(randomRange(0,255),randomRange(0,255),randomRange(0,255));//Génère une couleur aléatoirement
 		Point startingPoint = new Point(randomRange(0,this.host.getWidth()),randomRange(0,this.host.getHeight()));//Génère un point de départ aléatoire
-		//Implémentation du protocole de communication ici
+		//Si une partie est en cours, on fait attendre le thread jusqu'à ce que l'horloge le réveil(notify())
 		if(this.host.ispartieEnCours()){
 			this.out.println("Veuillez attendre la prochaine partie.");
 			this.out.flush();
 			synchronized(this){
-				try {
-					this.wait();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				while(this.host.ispartieEnCours()){
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			
 		} 
+		//On obtient le nom d'utilisateur, et on envoie au client la taille de l'arene
 	    try {
-	    	username = this.in.readLine();//Le joueur donne son nom/username
+	    	username = this.in.readLine();//Le joueur donne son username
+	    	
 			this.out.println(this.host.getWidth());
 			this.out.println(this.host.getHeight());
+			
 			this.player = new TronPlayer(username,clientsocket.getInetAddress().getHostName(),randomColor,startingPoint);
 			
 			//On s'assure que le point de départ et la couleur est unique au joueur
@@ -76,24 +80,28 @@ public class PlayerConnection extends Thread{
 			this.out.flush();
 		}	
 		//On affiche les informations sur chacun des joueurs connectés
-		for(PlayerConnection otherConnection: this.host.getConnections()){
-		    this.out.println("+"+ otherConnection.getPlayer().getUsername());
-		    this.out.println(otherConnection.getPlayer().getMachineID());
-		    this.out.println(otherConnection.getPlayer().getColor().getRGB());
-		    this.out.println(otherConnection.getPlayer().getStartPoint().getX());
-		    this.out.println(otherConnection.getPlayer().getStartPoint().getY());
+		for(PlayerConnection connection: this.host.getConnections()){
+			System.out.println(connection.getPlayer().getUsername());
+		    this.out.println("+"+ connection.getPlayer().getUsername());
+		    this.out.println(connection.getPlayer().getMachineID());
+		    this.out.println(connection.getPlayer().getColor().getRGB());
+		    this.out.println(connection.getPlayer().getStartPoint().getX());
+		    this.out.println(connection.getPlayer().getStartPoint().getY());
 		    this.out.flush();
-		    otherConnection.send("+"+this.player.getUsername());
-		    otherConnection.send(this.player.getMachineID());
-		    otherConnection.send(""+this.player.getColor().getRGB());
-		    otherConnection.send(""+this.player.getStartPoint().getX());
-		    otherConnection.send(""+this.player.getStartPoint().getY());
+		    if (!this.equals(connection)){
+			    connection.send("+"+this.player.getUsername());
+			    connection.send(this.player.getMachineID());
+			    connection.send(""+this.player.getColor().getRGB());
+			    connection.send(""+this.player.getStartPoint().getX());
+			    connection.send(""+this.player.getStartPoint().getY());
+		    }
 		}
+		    
 		this.initialized = true;//Le joueur a été initialisé
     }
     
     
-    //Cette méthode lit la le inputStream et met à jour la direction du joueur
+    //Cette méthode lit le inputStream et met à jour la direction du joueur
     public void run(){
 		synchronized(this){
 			//Tant que la partie n'est pas commencé, on attend une notification(de l'horloge du serveur)
@@ -101,7 +109,6 @@ public class PlayerConnection extends Thread{
 				try {
 					this.wait();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}//On pause l'exécution du thread jusqu'au début de la partie
@@ -112,11 +119,11 @@ public class PlayerConnection extends Thread{
 				command = this.in.readLine();
 				if(command.equals("quit")){
 					this.disconnect();
+					return;
 				} else{
 					this.player.setDirection(command);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 				
